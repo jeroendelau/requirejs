@@ -1,0 +1,22 @@
+{
+  "name": "requirejs-browser-extensions",
+  "description": "A slightly modified version of requirejs, which can be used in browser extentions.",
+  "main": "require.js",
+  "authors": [
+    "Jeroen de Lau <jeroen.delau@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "requirejs",
+    "browser-extensions",
+    "chrome"
+  ],
+  "homepage": "https://github.com/jeroendelau/requirejs",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
