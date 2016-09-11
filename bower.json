@@ -1,5 +1,5 @@
 {
-  "name": "requirejs-browser-extensions",
+  "name": "requirejs-for-browser-extensions",
   "description": "A slightly modified version of requirejs, which can be used in browser extentions.",
   "main": "require.js",
   "authors": [
@@ -17,6 +17,16 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+	"dist",
+	"docs",
+	".*",
+	"index.html",
+	"package.json",
+	"tasks.txt",
+	"testBaseUrl.js",
+	"updatesubs.sh"
+	
+	
   ]
 }
