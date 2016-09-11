@@ -1,3 +1,67 @@
+# RequireJS for Browser Plugins
+
+Adding ReqruireJS to browser plugins can be difficult. This fork has a couple of tweaks that allow you to use RequireJS in browser plugins seamlesly.
+
+## Basic use
+Mostly you can use requirejs as you normally would:
+
+### popup
+Simply use as you alwasy would
+
+    <head>
+      <script src="components/requirejs/require.js" data-main="main_popup.js"></script>
+    </head>
+
+### background scripts
+Running RequireJS in the background script requires you to include your require.js and main.js scripts to be added seperatelly.
+
+    "background": {
+        "scripts": [
+			"components/requirejs/require.js",
+			"js/main_background.js"
+        ]
+    },
+
+### running in content scripts
+This require the most work. You will need to do three things
+1. Add the require.js to your content scripts
+2. Add the require.js to your background scripts
+3. Make sure you have the cross site permissions that matches your content_script
+
+These are all required, so the background script can inject the scripts into your extension environement on the page.
+    
+    "content_scripts": [{
+            "matches": [
+                "https://www.example.com/*"
+            ],
+            "js": [
+                "components/requirejs/require.js",
+				"js/main_content.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "background": {
+        "scripts": [
+			"components/requirejs/require.js"
+			//optional main script
+        ],
+        "persistent": false
+    },
+    "permissions": [
+        "http://www.example.com"
+    ],
+
+## Config
+You can share config across all the versions by creating a single config file and using the for all three scenarios. Simply create a script containing your content, and load it after you load require.js and before you load your main.js file.
+
+requireconfig.js
+
+    require.config({
+        paths: {"someModule": chrome.extension.getURL("components/someModule")}
+    });
+
+
 # RequireJS
 
 RequireJS loads plain JavaScript files as well as more defined modules. It is
