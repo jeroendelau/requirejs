@@ -5,7 +5,7 @@
 //Not using strict: uneven strict support in browsers, #392, and causes
 //problems with requirejs.exec()/transpiler plugins that may not be strict.
 /*jslint regexp: true, nomen: true, sloppy: true */
-/*global window, navigator, document, importScripts, setTimeout, opera */
+/*global window, navigator, document, importScripts, setTimeout, chrome, opera */
 
 var requirejs, require, define;
 (function (global, setTimeout) {
@@ -204,7 +204,7 @@ var requirejs, require, define;
     //to the background script, which will inject it into the requesting tab.
 
     //Identify the chrome background page.
-    if (chrome && chrome.tabs)
+    if (chrome && chrome.extension.getBackgroundPage() == global)
     {
         //Add listener for requirejs, so it can inject scripts
         chrome.runtime.onMessage.addListener(
