@@ -196,6 +196,33 @@ var requirejs, require, define;
         require = undefined;
     }
 
+    //To allow requirejs to work in content scripts we need to inject scripts.
+    //Scrips can only be injected from the background or popup page.
+    //
+    //require.js shouldl be added to both the content and the background
+    //script for it to work properly. The content script will send a message
+    //to the background script, which will inject it into the requesting tab.
+
+    //Identify the chrome background page.
+    if (chrome && chrome.tabs)
+    {
+        //Add listener for requirejs, so it can inject scripts
+        chrome.runtime.onMessage.addListener(
+                function (request, sender, sendResponse) {
+                    if (request.type == "require")
+                    {
+                        //strip the extension path
+                        var script = request.url.replace(/chrome-extension:\/\/[\w]*?\//, "");
+
+                        //Inject the script into the requesting tab
+                        chrome.tabs.executeScript(sender.tab.id, {'file': script}, function (result) {
+                            sendResponse({'result': result});
+                        });
+                    }
+                    return true;
+                });
+    }
+
     function newContext(contextName) {
         var inCheckLoaded, Module, context, handlers,
             checkLoadedTimeoutId,
@@ -1890,8 +1917,30 @@ var requirejs, require, define;
      */
     req.load = function (context, moduleName, url) {
         var config = (context && context.config) || {},
-            node;
-        if (isBrowser) {
+                node;
+        // Identify a browser extension content script
+        if (chrome && !chrome.tabs)
+        {
+            //In a browser extensions content script do not load using
+            //headers. Instead load using script injection from the background
+            //page
+
+            chrome.runtime.sendMessage(
+                    {'type': 'require', 'url': url},
+                    function (response) {
+                        if (response.result) {
+                            //Account for anonymous modules
+                            context.completeLoad(moduleName);
+                        } else {
+                            context.onError(makeError('injectScripts',
+                                    'injectingScripts failed for ' +
+                                    moduleName + ' at ' + url,
+                                    e,
+                                    [moduleName]));
+                        }
+                    }
+            );
+        } else if (isBrowser) {
             //In the browser so use a script tag
             node = req.createNode(config, moduleName, url);
 
