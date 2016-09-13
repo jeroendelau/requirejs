@@ -199,7 +199,7 @@ var requirejs, require, define;
     //To allow requirejs to work in content scripts we need to inject scripts.
     //Scrips can only be injected from the background or popup page.
     //
-    //require.js shouldl be added to both the content and the background
+    //require.js should be added to both the content and the background
     //script for it to work properly. The content script will send a message
     //to the background script, which will inject it into the requesting tab.
 
@@ -211,12 +211,16 @@ var requirejs, require, define;
                 function (request, sender, sendResponse) {
                     if (request.type == "require")
                     {
-                        //strip the extension path
-                        var script = request.url.replace(/chrome-extension:\/\/[\w]*?\//, "");
-
                         //Inject the script into the requesting tab
-                        chrome.tabs.executeScript(sender.tab.id, {'file': script}, function (result) {
-                            sendResponse({'result': result});
+                        chrome.tabs.executeScript(sender.tab.id, {'file': request.url}, function (result) {
+                            if (!result)
+                            {
+                                sendResponse({'result': false, 'error': chrome.runtime.lastError.message});
+                            } else {
+                                sendResponse({'result': true});
+                            }
+
+
                         });
                     }
                     return true;
@@ -1910,6 +1914,18 @@ var requirejs, require, define;
             //headers. Instead load using script injection from the background
             //page
 
+            //for some reason the url is not expanded with the baseUrl and
+            //js file extension. We have to fix that. But we have to preserve
+            //those paths that are valid
+            var prefix = config.baseUrl || "";
+            var suffix = url.match(/\.js$/) ? "" : ".js";
+            eachProp(config.paths,
+                    function (path) {
+                        if (url.indexOf(path) === 0) {
+                            prefix = "";
+                        }
+                    });
+            url = (prefix + url).replace("//", "/") + suffix;
             chrome.runtime.sendMessage(
                     {'type': 'require', 'url': url},
                     function (response) {
@@ -1919,8 +1935,8 @@ var requirejs, require, define;
                         } else {
                             context.onError(makeError('injectScripts',
                                     'injectingScripts failed for ' +
-                                    moduleName + ' at ' + url,
-                                    e,
+                                    moduleName + ' at ' + url + " \nBackground script error: " + response.error,
+                                    new Error(response.error),
                                     [moduleName]));
                         }
                     }
